@@ -1,0 +1,47 @@
+name: con triggers #Nombre del workflow
+run-name: ¡Estoy usando triggers! #Nombre del run específico del workflow que aparecerá en la pestaña de Actions en Github
+on: 
+  push: #evento que lo activará
+    branches: 
+      - master
+  pull_request: 
+    types: [opened, synchronize, reopened] #cada vez que se abra, cada que se haga un cambio en un PR abierto y también cuando se ciera un PR y se decide volverlo a abrir
+    paths:
+      - '**.js' # tiene que cumplir ambas condiciones, que sea de alguno de los types de arriba y también que termine en js
+  issues: 
+    types: 
+      - labeled
+  workflow_dispatch:
+    inputs: 
+      lenguaje_favorito: 
+        description: 'Lenguaje favorito'
+        default: JavaScript
+        required: true
+        type: choice
+        options: 
+        - Python
+        - JavaScript
+        - Go
+      nombre: 
+        description: 'Tu nombre'
+        required: true
+        default: Sergio
+        type: string
+  schedule:
+    - cron: '15 22 * * *'  #Corre a las 10:15 de la noche en horario UTC
+jobs: #Definición de los jobs
+  hola-mundo: #Nombre del job
+    if: ${{ github.event_name != 'workflow_dispatch' }} #Corre cuando no sea un workflow_dispatch
+    runs-on: ubuntu-latest #Maquina en la que correrá
+    steps: #Lista de steps del job hola-mundo
+      - name: Public IP #Nombre del step
+        id: ip #identificador usable dentro del job para otros steps
+        uses: haythem/public-ip@v1.3 #Usará el action haythem/public-ip
+      - name: Hola mundo #Segundo step de nombre Hola mundo
+        run: echo ¡Hola Mundo desde ${{ steps.ip.outputs.ipv4 }}! #bash
+      - uses: actions/checkout@v3 #Permite clonar el repositorio en la maquina virtual
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Run hello-actions
+        run: node hello-actions.js
